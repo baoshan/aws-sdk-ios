@@ -13,7 +13,6 @@
 // permissions and limitations under the License.
 //
 
-#import <UIKit/UIKit.h>
 
 //! Project version number for AWSCore.
 FOUNDATION_EXPORT double AWSCoreVersionNumber;
