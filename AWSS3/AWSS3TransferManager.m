@@ -35,6 +35,7 @@ NSString *const AWSS3TransferManagerUserAgentPrefix = @"transfer-manager";
 
 @property (nonatomic, strong) AWSS3 *s3;
 @property (nonatomic, strong) AWSTMCache *cache;
+@property (strong) NSMutableArray *uploadPartRequests;
 
 @end
 
@@ -329,7 +330,7 @@ static AWSSynchronizedMutableDictionary *_serviceClients = nil;
         }
 
         __block int64_t multiplePartsTotalBytesSent = 0;
-
+        [_uploadPartRequests removeAllObjects];
         NSMutableArray *tasks = [NSMutableArray array];
 
         for (NSUInteger i = c; i < partCount + 1; i++) {
@@ -390,7 +391,7 @@ static AWSSynchronizedMutableDictionary *_serviceClients = nil;
                         }
                     }
                 };
-
+                [_uploadPartRequests addObject:uploadPartRequest];
 
                 return [[[weakSelf.s3 uploadPart:uploadPartRequest] continueWithSuccessBlock:^id(AWSTask *task) {
                     AWSS3UploadPartOutput *partOuput = task.result;
@@ -698,6 +699,9 @@ static AWSSynchronizedMutableDictionary *_serviceClients = nil;
             || [cachedObject isKindOfClass:[AWSS3TransferManagerDownloadRequest class]]) {
             [tasks addObject:[cachedObject cancel]];
         }
+    }
+    for (AWSS3UploadPartRequest *request in _uploadPartRequests) {
+        [tasks addObject:[request cancel]];
     }
 
     return [AWSTask taskForCompletionOfAllTasks:tasks];
